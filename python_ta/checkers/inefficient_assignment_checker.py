@@ -1,7 +1,6 @@
-"""checker for type annotation.
+"""checker for inefficient assignment.
 """
 
-import astroid
 from astroid import nodes
 from pylint.checkers import BaseChecker
 from pylint.checkers.utils import check_messages
@@ -13,10 +12,10 @@ class InefficientAssignment(BaseChecker):
 
     name = "inefficient_assignment"
     msgs = {
-        "W0001": (
-            "Returns a non-unique constant.",
+        "CUSTOM": (
+            "Inefficient assignment has been made.",
             "inefficient_assignment",
-            "All constants returned in a function should be unique.",
+            "Binary operation with a constant and an existing varialbe should be efficient.",
         ),
     }
 
@@ -24,13 +23,15 @@ class InefficientAssignment(BaseChecker):
 
     def __init__(self, linter):
         super().__init__(linter=linter)
-        self._inefficient_assignment = []
 
     def visit_assign(self, node: nodes.Assign):
         if isinstance(node.value, nodes.BinOp):
             if (
                 node.value.left.name == node.targets[0].as_string()
-                or node.value.right.name == node.targets[0].as_string()
+                and isinstance(node.value.right, nodes.Const)
+            ) or (
+                node.value.right.name == node.targets[0].as_string()
+                and isinstance(node.value.left, nodes.Const)
             ):
                 self.add_message(
                     "inefficient_assignment",
@@ -39,26 +40,3 @@ class InefficientAssignment(BaseChecker):
 
     def register(linter):
         linter.register_checker(InefficientAssignment(linter))
-
-
-if __name__ == "__main__":
-    # node = astroid.extract_node("""
-    # x = 5
-    # y = y + 5
-    # """)
-    # print(node)
-    # print(node.targets[0].as_string())
-    # # print(node.targets[0].as_string())
-    # print(node.value)
-    # print(isinstance(node.value, nodes.BinOp))
-    # print(node.value.left.name == node.targets[0].as_string())
-
-    a, b = astroid.extract_node(
-        """
-        def test(x): #@
-            x = x + 5 #@
-        """
-    )
-
-    print(a)
-    print(b)
