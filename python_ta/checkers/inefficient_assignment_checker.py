@@ -26,12 +26,8 @@ class InefficientAssignment(BaseChecker):
 
     def visit_assign(self, node: nodes.Assign):
         if isinstance(node.value, nodes.BinOp):
-            if (
-                node.value.left.name == node.targets[0].as_string()
-                and isinstance(node.value.right, nodes.Const)
-            ) or (
-                node.value.right.name == node.targets[0].as_string()
-                and isinstance(node.value.left, nodes.Const)
+            if node.value.left.name == node.targets[0].as_string() and isinstance(
+                node.value.right, nodes.Const
             ):
                 self.add_message(
                     "inefficient_assignment",
